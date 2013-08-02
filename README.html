@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Classy.js - classes and mixins in Javascript</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link type="text/css" rel="stylesheet" href="assets/css/bootstrap.min.css"/>
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+      @media (min-width: 980px) {
+        /* make sure headers dont go below the fixed navbar when using #links */
+        /* http://css-tricks.com/hash-tag-links-padding/ */
+        h2:before, h3:before, h4:before { 
+          display: block; 
+          content: " "; 
+          margin-top: -40px; 
+          height: 40px; 
+          visibility: hidden; 
+        }
+      }
+      /* highlight target */
+      h2:target, h3:target, h4:target { background: yellow; }
+      /* styles for TOC menu */
+      li.toc1 { display: none;}
+      li.toc2 { padding-left: 0px; border-bottom: 1px solid rgba(0, 0, 0, 0.2);}
+      li.toc2 a { font-weight: bold;}
+      li.toc3 { padding-left: 15px; }
+      li.toc4 { padding-left: 30px; }
+      li.toc4 a { font-size: 12px; }
+      li.toc5 { display: none; }
+    </style>
+    <link type="text/css" rel="stylesheet" href="assets/css/bootstrap-responsive.min.css"/>
+    <link type="text/css" rel="stylesheet" href="assets/css/prettify.css"/>
+  </head>
+<body onload="prettyPrint()">
+
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container">
+        <a class="brand" href="#">Classy.js - classes and mixins in Javascript</a>
+        <div class="btn-group pull-right">
+          <a class="btn dropdown-toggle btn-inverse" data-toggle="dropdown" href="#">
+            Content
+            <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu"><li class="toc1""><a href="#classy___yet_another__object_oriented_framework_for_javascript">Classy, (yet another) object-oriented framework for Javascript</a></li><li class="toc2""><a href="#a_taste_of_how_it__39_s_used_">A taste of how it&#39;s used</a></li><li class="toc3""><a href="#declaring_a_class">Declaring a class</a></li><li class="toc3""><a href="#declaring_a_subclass">Declaring a subclass</a></li><li class="toc3""><a href="#wrappers_and_mixins">Wrappers and Mixins</a></li><li class="toc2""><a href="#what__39_s_different_between_classy_and_other_oo_frameworks">What&#39;s different between Classy and other OO frameworks</a></li><li class="toc3""><a href="#declaring_classes">Declaring classes</a></li><li class="toc3""><a href="#fields">Fields</a></li><li class="toc3""><a href="#constructors">Constructors</a></li><li class="toc3""><a href="#call_to_super">Call to super</a></li><li class="toc3""><a href="#method_wrappers">Method wrappers</a></li><li class="toc3""><a href="#mixins">Mixins</a></li><li class="toc3""><a href="#field_wrappers">Field wrappers</a></li><li class="toc3""><a href="#disclaimer">Disclaimer</a></li><li class="toc2""><a href="#user_manual">User Manual</a></li><li class="toc3""><a href="#defining_classes">Defining classes</a></li><li class="toc4""><a href="#fields">Fields</a></li><li class="toc4""><a href="#constructors_and_object_instantiation">Constructors and object instantiation</a></li><li class="toc4""><a href="#methods">Methods</a></li><li class="toc4""><a href="#calls_to_super">Calls to super</a></li><li class="toc4""><a href="#instance_methods">Instance methods</a></li><li class="toc4""><a href="#class_fields_and_class_methods">Class fields and Class methods</a></li><li class="toc4""><a href="#chaining_calls">Chaining calls</a></li><li class="toc3""><a href="#method_wrappers">Method wrappers</a></li><li class="toc3""><a href="#field_wrappers">Field wrappers</a></li><li class="toc4""><a href="#wrapping_fields_at_the_object_level">Wrapping fields at the object level</a></li><li class="toc4""><a href="#wrapping_fields_at_the_class_level">Wrapping fields at the class level</a></li><li class="toc3""><a href="#mixins">Mixins</a></li><li class="toc3""><a href="#introspection">Introspection</a></li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <a name="classy___yet_another__object_oriented_framework_for_javascript"></a><h1>Classy, (yet another) object-oriented framework for Javascript<a class="anchorlink" href="#classy___yet_another__object_oriented_framework_for_javascript"></a></h1>
+<p><em>&copy; 2011-2013, Michel Beaudouin-Lafon, mbl@lri.fr</em><br><em>Open-sourced under the MIT License</em></p>
+<a name="a_taste_of_how_it__39_s_used_"></a><h2>A taste of how it&#39;s used:<a class="anchorlink" href="#a_taste_of_how_it__39_s_used_"></a></h2>
+<p>Classy is a lightweight framework to program with classes in Javascript. 
+Here is a quick overview of its features.</p>
+<a name="declaring_a_class"></a><h3>Declaring a class<a class="anchorlink" href="#declaring_a_class"></a></h3>
+<p>Define a class <code>Shape</code> with two properties (<code>x</code> and <code>y</code>), a default constructor and some methods:</p>
+<pre class="prettyprint">var Shape = Classy.newClass();
+Shape.fields({x: 0, y: 0});
+Shape.constructor(function(x, y) {
+    this.x = x; this.y = y;
+});
+Shape.methods({
+    moveby: function (dx, dy) { this.x += dx; this.y += dy; },
+    moveto: function (x, y) { this.x = x; this.y = y; },
+});</pre>
+<p>Create a shape, call a method and print its properties:</p>
+<pre class="prettyprint">var s = Shape.create(5, 5);
+s.moveby(10, 15);
+console.log(s.x,&#39;,&#39;,s.y);    // 15,20</pre>
+<a name="declaring_a_subclass"></a><h3>Declaring a subclass<a class="anchorlink" href="#declaring_a_subclass"></a></h3>
+<p>Create a <code>Circle</code> subclass, with a new field, two constructors and some methods.
+Note that we can use a chain of calls instead of a sequence as above.
+Note also that it is possible to call the redefined method with <code>this._super()</code>:</p>
+<pre class="prettyprint">var Circle = Shape.subclass()
+    .fields({radius: 1})            // this could also be written .field(&#39;radius&#39;, 1)
+    .constructor(function (x, y, r) {
+        this._super(x, y);    // call to super, i.e. the Shape constructor
+        this.radius = r;
+    })
+    .constructor(&#39;withradius&#39;, function(r) {    // this is a named constructor
+        this.radius = r;    // no need to call super, x and y will be inited to 0
+    })
+    .methods({
+        area: function() { return this.radius * this.radius * 3.14; },
+        // as with constructors, we can call this._super(...) in a method
+    });</pre>
+<p>Create a circle with the named constructor and play with it:</p>
+<pre class="prettyprint">var c = Circle.withradius(12).moveby(10, 15);
+print (c.area());</pre>
+<p>Add an active field for the diameter.
+This uses the Javascript syntax for getter/setter for properties:</p>
+<pre class="prettyprint">Circle.fields({
+    get diameter() {return this.radius * 2},
+    set diameter(val) {this.radius = val / 2},
+});
+var c2 = Circle.create();
+c2.diameter = 20;
+print (c2.radius);    // 10</pre>
+<p>In addition to these basic object-oriented features, Classy supports various ways 
+of modifying an existing class: wrapping methods, using mixins, and wrapping fields.</p>
+<a name="wrappers_and_mixins"></a><h3>Wrappers and Mixins<a class="anchorlink" href="#wrappers_and_mixins"></a></h3>
+<p>First, let&#39;s create a <strong>method wrapper</strong>, a function that will be called
+instead of an existing method. The special call <code>this._inner()</code>
+calls the original method (you can think of it as <code>super</code> working
+backwards):</p>
+<pre class="prettyprint">function traceWrapper() {
+    log(&#39;calling traced method &#39;)
+    return this._inner();    // calls the wrapped method
+}
+// add the wrapper to a couple methods
+Shape.wrap(&#39;moveby&#39;, traceWrapper);
+Circle.wrap(&#39;area&#39;, traceWrapper);
+c.area();    // will print &#39;calling traced method&#39;
+// remove the wrapper
+Circle.unwrap(&#39;area&#39;, traceWrapper);</pre>
+<p><strong>Mixins</strong> allow us to inject code into an existing class.
+Here we define a mixin that calls a redisplay method
+when some of the methods of the original class are called:</p>
+<pre class="prettyprint">// define a mixin for redisplaying a shape when it is changed
+function redisplayWrapper() {
+    this._inner.apply(this, arguments);        // call original function with same arguments
+    this.redisplay();                        // call the mixin method
+}
+
+var displayMixin = {
+    constructor: function() { this.redisplay(); },    // constructor called for each new object
+    fields: {},                                        // additional fields (none here)
+    methods: {                                        // additional methods
+        redisplay: function() { ... redisplay shape ...}
+    },
+    wrappers: {                                     // wrappers for existing methods
+        moveto: redisplayWrapper, 
+        moveby: redisplayWrapper
+    }
+};
+// add the mixin to a class
+Shape.mixin(displayMixin);
+var c = Circle.create();
+c.moveby(10, 12); // calls redisplay</pre>
+<p>Finally, we can also create <strong>field wrappers</strong>, i.e. wrap the fields of an existing class to
+add side effects when they are read and/or written.
+Here we wrap the <code>radius</code> field so that the circle gets redisplayed 
+when assigning its radius:</p>
+<pre class="prettyprint">Shape.wrapFields({
+    set radius(r) { this._set(r); this.redisplay(); }
+        // this._set() and this._get(val) invoke the original setter/getter
+});</pre>
+<p>Wrapped fields can also be specified in a mixin, as described in the user manual below.</p>
+<a name="what__39_s_different_between_classy_and_other_oo_frameworks"></a><h2>What&#39;s different between Classy and other OO frameworks<a class="anchorlink" href="#what__39_s_different_between_classy_and_other_oo_frameworks"></a></h2>
+<a name="declaring_classes"></a><h3>Declaring classes<a class="anchorlink" href="#declaring_classes"></a></h3>
+<p>Classes are objects, <em>not</em> constructors in the Javascript sense.
+This means that we can&#39;t use <code>new MyClass(...)</code> to create an object.
+Instead, a class is instantiated using <code>MyClass.create(...)</code>.</p>
+<p>While the syntax is a matter of taste, this means that we have a real metaclass (the class&#39;s prototype)
+and that we can easily add fields, methods, constructors and subclasses to the class using
+method chaining: </p>
+<pre class="prettyprint">var A = Classy.newClass().fields(...).constructors(...).methods(...);</pre>
+<p>These can be called in any order, as many times as you want.
+Note however that if you add fields after having created objects, the existing objects
+will not get these fields.</p>
+<a name="fields"></a><h3>Fields<a class="anchorlink" href="#fields"></a></h3>
+<p>A class can declare a set of fields, which are object properties that are automatically 
+initialized in every new object. This makes constructors easier to write, sometimes even unecessary.
+Note that the constructor can still create properties in the usual way (<code>this.a = 1</code>).</p>
+<p>If the default value of a field is a function, it is called each time a new object is created.</p>
+<p>Fields can also be defined as &quot;active&quot; by specifying a getter and/or setter function.
+This supports dynamically computed fields, or fields with side effects.</p>
+<p>Note that the default constructor of every class (<code>create</code>) can take a literal object with property values
+that are copied to the fields of the new object. These properties are copied as is (no special treatment
+of properties whose value is a function or which have setters and/or getters).</p>
+<a name="constructors"></a><h3>Constructors<a class="anchorlink" href="#constructors"></a></h3>
+<p>You are not stuck with a single constructor and complex parsing of its arguments
+when you want different possible sets of parameters for your constructor.</p>
+<p>Not only can you overload the default constructor (<code>create</code>) with your own,
+you can also create other constructors with different names, each with their own parameters.</p>
+<p>Because of the call to <code>_super</code> (see below), constructor chaining is very simple.</p>
+<a name="call_to_super"></a><h3>Call to super<a class="anchorlink" href="#call_to_super"></a></h3>
+<p>Constructors and methods can call-to-super, i.e. call the constructor or method that they
+are overriding in a parent class.</p>
+<p>Call-to-super is simple: just use <code>this._super(...)</code> in a constructor or method.</p>
+<p>In my opinion, this is cleaner that, e.g., <code>prototype.js</code> use of <code>$super</code> or David Flanagan&#39;s
+use of <code>arguments.callee</code> in his <code>DefineClass</code> method from his book.</p>
+<a name="method_wrappers"></a><h3>Method wrappers<a class="anchorlink" href="#method_wrappers"></a></h3>
+<p>Wrappers and mixins make it possible to modify a class in a reversible way. 
+This goes beyond redefining or adding methods using subclassing:</p>
+<p>A <em>method wrapper</em> redefines a method in a class in such a way that the original method can be called
+using <code>this._inner(...)</code>. This is similar to a call to super but within a class.</p>
+<p>Wrappers can be stacked (a wrapper can be added to a method that already has a wrapper)
+and removed dynamically.</p>
+<a name="mixins"></a><h3>Mixins<a class="anchorlink" href="#mixins"></a></h3>
+<p>A <em>mixin</em> is similar to a class that is &#39;merged&#39; into an existing class: it can define fields
+to be added to (future) objects of the class, new methods and wrappers, and a default constructor.
+(One current limitation is that changes to a mixin after it is added to a class do not affect the class.)</p>
+<p>Mixins provide some of the effects of multiple inheritance without many of the drawbacks.
+Note that fields added by a mixin override fields with the same name in the orignal class, if they exist.
+This can be useful, for example to change the default value, but it can also be dangerous 
+if the collision was unexpected.</p>
+<a name="field_wrappers"></a><h3>Field wrappers<a class="anchorlink" href="#field_wrappers"></a></h3>
+<p>A field of an existing object or class can be wrapped with a getter and/or setter.
+This makes it possible to add side effects to every access (get or set) to a field.</p>
+<p>A given field can be wrapped only once per class or per mixin, but if several mixins
+wrap the same field, the wrappers will be nested.</p>
+<p>Field wrappers can be added on a per-object basis, with the methods <code>wrapField</code>, <code>wrapFields</code>, 
+<code>unwrapField</code> and <code>unwrapFields</code>, defined for every object. </p>
+<p>They can also be specified at the class-level, in the <code>fieldWrappers</code> property of a mixin.</p>
+<p>Note that <code>o.unwrapField(s)</code> is the only way to remove field wrappers from an existing object.
+If a mixin that has wrapped fields is removed from a class, the existing objects are unaffected.</p>
+<a name="disclaimer"></a><h3>Disclaimer<a class="anchorlink" href="#disclaimer"></a></h3>
+<p>I am not claiming this is a better framework than what&#39;s already out there.
+It&#39;s just different, with a different set of tradeoffs. And it was a good exercise
+for playing (and sometimes fighting with) Javascript&#39;s object model!</p>
+<p>Comments and suggestions welcome!</p>
+<a name="user_manual"></a><h2>User Manual<a class="anchorlink" href="#user_manual"></a></h2>
+<p>There are two versions of the package, <code>oo.js</code> and <code>classy.js</code>:</p>
+<ul class="list">
+<li><code>oo.js</code> implements the basic class-based model, but not the mixins and wrappers;</li>
+<li><code>classy.js</code> implements the complete model, including mixins and wrappers.</li>
+</ul>
+<p>The scripts are self-contained and can be used both in a browser, using a &lt;script&gt; tag:</p>
+<pre class="prettyprint">&lt;script src=&quot;oo.js&quot;&gt;&lt;/script&gt;&lt;!-- defines global variable OO --&gt;
+&lt;script src=&quot;classy.js&quot;&gt;&lt;/script&gt;&lt;!-- defines global variable Classy --&gt;</pre>
+<p>or with node.js, using require:</p>
+<pre class="prettyprint">var OO = require(&#39;./oo&#39;);
+var Classy = require(&#39;./classy&#39;);</pre>
+<p>In the rest of this documentation, we use <code>Classy</code> as the global name exported by the package.</p>
+<p>The script exports three objects:</p>
+<ul class="list">
+<li><code>Classy.newClass</code>, the function to create new classes. This is all you need to use Classy;</li>
+<li><code>Classy.Metaclass</code>, the metaclass object, if you want to add new methods to it;</li>
+<li><code>Classy.object</code>, the constructor of all Classy objects: <code>o instanceof Classy.object</code> is true for all Classy objects.</li>
+</ul>
+<a name="defining_classes"></a><h3>Defining classes<a class="anchorlink" href="#defining_classes"></a></h3>
+<p>To create a class, use the exported <code>newClass</code> function. It is customary to also give a name to the class, which is used by the default <code>toString</code> function of Classy objects:</p>
+<pre class="prettyprint">var A = Classy.newClass().name(&#39;A&#39;);
+var a = A.create();            // create an instance of A
+console.log(a.toString());    // &quot;instance of class A&quot;</pre>
+<p>To create a subclass of an existing class, use the <code>subclass</code> method of the parent class:</p>
+<pre class="prettyprint">var B = A.subclass().name(&#39;B&#39;)</pre>
+<a name="fields"></a><h4>Fields<a class="anchorlink" href="#fields"></a></h4>
+<p>To define fields, use the <code>field</code>, <code>activeField</code> and <code>fields</code> methods on the class object:</p>
+<pre class="prettyprint">A.field(&#39;x&#39;, 0)        // field name and default value
+A.activeField(&#39;&#39;, &lt;getter&gt;, &lt;setter&gt;)    // active field, &lt;getter&gt; and &lt;setter&gt; are functions (or null)
+A.fields({            // define multiple fields at once
+    radius: 0,
+    position: [0, 0],                // a copy of the array is created for each new object
+    color: {r: 100, g: 20, b: 30},    // a copy of the literal is created for every new object
+    created: function() { return new Date(); }    // the function is called for every new object
+    // an active field
+    get diameter: function() { return this.radius * 2;}
+    set diameter: function(d) { this.radius = d/2;}
+})</pre>
+<p>Note that initial values are copied for each new object. This is usually what is wanted, so that each
+object gets a fresh copy of the initial values.
+If however you want to share the object specified as initial value instead of copying it, you can either:</p>
+<ul class="list">
+<li>Use as initializer a function that returns the shared object</li>
+<li>Pass an object with the property <code>__immutable</code> set to true</li>
+</ul>
+<p>Here is an example:</p>
+<pre class="prettyprint">// first solution: use a function returning the object
+A.field(&#39;color&#39;, function() { return {r: 100, g: 0, b: 0}; });
+// alternative:
+function shared(v) { return function(v) { return v}};
+A.field(&#39;color&#39;, shared({r: 100, g: 0, b: 0}));
+
+// second solution: use __immutable
+A.field(&#39;color&#39;, {r: 0, g: 0, b: 100, __immutable: true });
+// alternative:
+function immutable(v) { v._immutable = true; return v}
+A.field(&#39;color&#39;, immutable({r: 100, g: 0, b: 0}));</pre>
+<p>In the full version of Classy, fields can be wrapped with or without the use of mixins.
+See the description of field wrappers and mixins below.</p>
+<a name="constructors_and_object_instantiation"></a><h4>Constructors and object instantiation<a class="anchorlink" href="#constructors_and_object_instantiation"></a></h4>
+<p>Constructors are used to create new objects. The body of the constructor
+is called after the object has been created and the properties corresponding to 
+the fields declared in the class have been initialized.</p>
+<p>Each class has a predefined constructor called <code>create</code>.
+This constructor can be redefined, and other constructors (with different names)
+can be defined. The class methods to define constructors are as follows:</p>
+<pre class="prettyprint">A.constructor(&lt;function&gt;)            // define the default constructor
+A.constructor(&#39;name&#39;, &lt;function&gt;)    // define a named constructor
+A.constructors({            // define multiple constructors at once
+    create: &lt;function&gt;,                // default constructor
+    createWithSize: &lt;function&gt;,        // named constructor
+})</pre>
+<p>As with all class methods, these can be chained.</p>
+<p>The expression <code>A.create()</code> creates a new object of class <code>A</code>, initializes it,
+and calls the default constructor, if defined. The default constructor takes
+an optional argument, which is a literal object used to intialize the fields
+of the object. Only the properties of this literal objects that are also declared
+as fields of the class being instantiated or one of its parent classes are initialized.
+So for example :</p>
+<pre class="prettyprint">var A = Classy.newClass().field(&#39;x&#39;, 0);
+var a = A.create({x: 0, y: 0});
+a.y;    // undefined</pre>
+<p>In the following example, <code>createWithSize</code> is a constructor that takes a size.
+The expression <code>A.createWithSize(20)</code> creates a new object of class <code>A</code>, initializes it,
+and calls the constructor <code>createWithSize</code>.</p>
+<pre class="prettyprint">var A = Classy.newClass().name(&#39;A&#39;)
+    .fields({width: 0, height:0})
+    .constructors({ createWithSize: function(size) { this.width = size; this.height = size; } })
+    .methods({ area: function() { return this.width*this.height; } });
+A.createWithSize(20).area();    // 400</pre>
+<p>For subclasses, constructors can call the constructor of the parent class using 
+the <em>call-to-super</em> described below. Note that if the <code>create</code> default constructor
+is not defined in the subclass, but is defined in the parent class, the parent&#39;s
+constructor is <em>not</em> called.</p>
+<pre class="prettyprint">var A = Classy.newClass().name(&#39;A&#39;)
+    .constructor( function() { console.log(&#39;inited and A&#39;) });
+var B = A.subclass().name(&#39;B&#39;)
+    .constructor( function() { this._super(); console.log(&#39;inited and B&#39;) });
+var b = B.create();    // prints &quot;inited an A&quot; then &quot;inited a B&quot;</pre>
+<a name="methods"></a><h4>Methods<a class="anchorlink" href="#methods"></a></h4>
+<p>Methods applicable to instances of a class are defined in a way similar to constructors:</p>
+<pre class="prettyprint">A.method(&#39;m&#39;, &lt;function&gt;)    // define a single method
+A.methods({                    // define multiple methods at once
+    m1: &lt;function&gt;,
+    m2: &lt;function&gt;,
+})</pre>
+<p>These calls can be chained, like those defining fields and constructors.</p>
+<p>Methods are called as usual in Javascript:</p>
+<pre class="prettyprint">var a = A.create();
+a.m();
+a.m1(...);</pre>
+<p>Methods in a subclass can call the corresponding method of the parent class using 
+the <em>call-to-super</em> described below.</p>
+<p>In the full version of Classy, methods can be wrapped with or without the use of mixins.
+See the description of method wrappers and mixins below.</p>
+<a name="calls_to_super"></a><h4>Calls to super<a class="anchorlink" href="#calls_to_super"></a></h4>
+<p>When class <code>B</code> inherits from class <code>A</code>, constructors and methods in <code>B</code> can
+call the corresponding constructor or method in class <code>A</code> using the expression</p>
+<pre class="prettyprint">this._super(&lt;arguments&gt;)</pre>
+<p>This is particularly useful in constructors in order to chain them together.
+Note that this works <em>only</em> when the call to <code>_super</code> is in the body of the
+constructor or method itself. So for example, the following will <em>not</em> work:</p>
+<pre class="prettyprint">function doesNotWork(o) { return o._super();}
+var A = Classy.newClass()
+            .method(&#39;m&#39;, function() { return &#39;Hello&#39;; });
+var B = A.subclass()
+            .method(&#39;m&#39;, function() { return doesNotWork(this); });</pre>
+<p><em>A note about performance: the implementation of <code>_super</code> requires that the
+constructors and methods that call to super be wrapped in a function.
+This has a slight performance impact since a call to <code>o.m()</code> is not a direct
+call anymore, but a call to a function that calls the method <code>m</code>. In practice,
+the overhead is negligible.</em></p>
+<p>It is sometimes necessary to call a method of the parent class that is <em>not</em>
+of the same name. For example, a named constructor wants to call the default
+constructor of the parent class. The best way to achieve this is to use the
+methods <code>getConstructor</code> and <code>getMethod</code> of the parent class. These methods
+return the function implementing the constructor or method (if it exists):</p>
+<pre class="prettyprint">var A = Classy.newClass()
+            .constructor(&#39;create&#39;, function() {...});
+var B = A.subclass()
+            .constructor(&#39;createWithSize&#39;, function(s) { 
+                ... 
+                A.getConstructor(&#39;create&#39;).call(this, ...);
+                // alternative: 
+                //   this.class().superclass().getConstructor().call(this, ...)
+            })</pre>
+<a name="instance_methods"></a><h4>Instance methods<a class="anchorlink" href="#instance_methods"></a></h4>
+<p>In addition to the standard Javascript methods of Object,
+all Classy objects have the following methods:</p>
+<pre class="prettyprint">o.toString()    // return a simple string &quot;instance of &lt;class name&gt;&quot;
+o.className()    // return the name of the class of object o
+o.classs()        // return the class object used to create o
+o.set(...)        // set values of object fields - see below
+o.get(...)        // get values of object fields - see below</pre>
+<p>Note that <code>toString</code> and <code>className</code> are really useful only when the class has been given a name with, e.g., <code>A.name(&#39;A&#39;)</code>. </p>
+<p>Note also that the method <code>classs</code> has 3 &#39;s&#39;s. This is not an error and is due to the fact that the word <code>class</code> is reserved in Javascript. If an object is created with <code>o = A.create()</code>, then <code>o.classs() === A</code>.</p>
+<p><code>set</code> and <code>get</code> allow you to set and get the values of one or more fields at once. Of course, fields can also be accessed with the usual Javascript dot notation, i.e. <code>o.x</code> and <code>o[&#39;x&#39;]</code>.</p>
+<p>Setting fields with <code>o.set</code> can use a list of field names and values, an array of field names plus an array of field values, a literal object, or another Classy object. Whichever syntax you use, only fields that are declared in the object&#39;s class or one of its parent classes are assigned. Here are the four version of <code>set</code>:</p>
+<pre class="prettyprint">o.set(&#39;field1&#39;, value1, &#39;field2&#39;, value2, ...)
+o.set([&#39;field1&#39;, &#39;field2&#39;, ...], [value1, value2, ...])
+o.set({ field1: value, field2: value2, ...})
+o.set(o2)</pre>
+<p>Getting field values with <code>get</code> follows the same pattern, with the addition of a call without arguments, which simply retrieves all defined fields of the object, and a call with a single field name, which simply returns its value:</p>
+<pre class="prettyprint">o.get()          // return all the fields and their values in a literal object
+o.get(&#39;field&#39;)  // return the value of the field
+o.get(&#39;field1&#39;, &#39;field2&#39;, ...)        // return an array &#39;field1&#39;, value, &#39;field2&#39;, value, ...
+o.get([&#39;field1&#39;, &#39;field2&#39;, ...])    // same as above
+o.get({ field1: v1, field2: v2, ...})    // return a literal object
+o.get(o2)        // return a literal object with the fields of o2 present in o</pre>
+<p>Note that in the last two cases (using a literal object or Classy object), the existing values are ignored and the resulting object only contains the fields that are defined in the receiving object&#39;s class. By constrast, the calls that return an array include all the fields listed in the arguments, with a value of <code>undefined</code> for those fields that are not defined in the receiving object&#39;s class.</p>
+<p><code>set</code> and <code>get</code> are designed to play nice together. For example, one can write:</p>
+<pre class="prettyprint">o2.set(o1.get(&#39;x&#39;, &#39;y&#39;, &#39;z&#39;));    // copy the values of o1.x, o1.y, o1.z to o2
+var rgb = [&#39;r&#39;, &#39;g&#39;, &#39;b&#39;];
+o2.set(o1.get(rgb));            // copy the values of o1.r, o1.g, o1.b to o2</pre>
+<p>While these calls are more expensive that directly accessing the object&#39;s properties, they provide the added security of only setting and getting fields that are declared in the object&#39;s classes. This makes it possible to treat other properties of objects as private:</p>
+<pre class="prettyprint">var A = Classy.newClass().field(&#39;x&#39;, 0).constructor(function() { this.hidden = 1; });
+var a = A.create(), b = B.create();
+a.x = 10; a.hidden = 2;
+b.set(a);    // b.x is 10, but b.hidden is still 1</pre>
+<p>One last point about instance methods: the version of Classy that supports mixins defines additional instance methods (<code>wrapField</code>, <code>unwrapField</code> and <code>unwrapFields</code>), described below in the section on Field wrappers.</p>
+<a name="class_fields_and_class_methods"></a><h4>Class fields and Class methods<a class="anchorlink" href="#class_fields_and_class_methods"></a></h4>
+<p>Since a Classy class is an object, it can have its own fields and methods.
+These are called <em>class fields</em> and <em>class methods</em> (other languages sometimes call them 
+static fields or methods). They are declared in a similar way as instance fields and methods:</p>
+<pre class="prettyprint">classField(&#39;name&#39;, value)
+classFields({ f1: v1, f2: v2, ...})
+
+classMethod(&#39;name&#39;, &lt;function&gt;)
+classMethods({ m1: &lt;function&gt;, m2: &lt;function&gt;, ...})</pre>
+<p>Here is an example of use, to assign unique ids to instances of a class:</p>
+<pre class="prettyprint">var A = Classy.newClass()
+        .field(&#39;id&#39;, 0)
+        .classField(&#39;count&#39;, 0)
+        .classMethod(&#39;nextId&#39;, function() { return ++this.count; })
+        .constructor(function() { this.id = A.nextId(); })</pre>
+<a name="chaining_calls"></a><h4>Chaining calls<a class="anchorlink" href="#chaining_calls"></a></h4>
+<p>As shown in many of the examples above, the methods that define a class return the class itself, 
+so they can be chained.</p>
+<p>Here is a typical example of a class definition:</p>
+<pre class="prettyprint">var A = Classy.newClass().name(&#39;A&#39;)
+    .fields({
+        x: 0,
+        y: 0,
+        ...
+    })
+    .classField(&#39;count&#39;, 0)
+    .constructors({
+        createAt: function(x, y) { this.x = x; this.y = y; },
+        ...
+    })
+    .methods({
+        moveBy: function(dx, dy) { this.x += dx; this.y += dy; },
+        ...
+    });</pre>
+<p>Note that every call to these methods <em>add</em> to the class definition.
+In case of a redefinition of a field or method, the old definition is simply replaced.</p>
+<p>When fields are added to a class <em>after</em> some objects of that class have been created, 
+the changes do not affect these objects.</p>
+<a name="method_wrappers"></a><h3>Method wrappers<a class="anchorlink" href="#method_wrappers"></a></h3>
+<p>Wrapping a method consists of replacing it with a new function that can (and usually does) 
+call the original one. The wrapped method can be restored to its original value (unwrapping).
+A method can be wrapped multiple times, in which case the wrappers stack and can call each other
+from the most recent one down to the original method.</p>
+<p>In this example, a wrapper is added to method <code>m</code> of class <code>A</code> to trace it:</p>
+<pre class="prettyprint">var A = Classy.newClass();
+A.method(&#39;m&#39;, function() { return &#39;Hello&#39;; });
+A.wrap(&#39;m&#39;, function() { 
+    console.log(&#39;tracing A.m&#39;);
+    return this._inner();
+})</pre>
+<p>The expression <code>this._inner()</code> calls the original function, in a similar spirit as <code>_super</code>.
+It is called &quot;inner&quot; because the original method is &quot;inside&quot; the wrapper.</p>
+<p>The following methods can be used with a class to managed method wrappers:</p>
+<pre class="prettyprint">A.wrap(&#39;m&#39;, &lt;function&gt;)    // define a method wrapper
+A.wrappers({            // define multipled wrappers at once
+    &#39;m&#39;: &lt;function&gt;,
+    ...
+})
+A.wrapped(&#39;m&#39;)            // true if method m is wrapped in class A
+A.wrapped(&#39;m&#39;, fun)        // true if method m is wrapped by function fun in class A
+A.unwrap(&#39;m&#39;)            // unwrap the topmost wrapper of method m in class A (if any)
+A.unwrap(&#39;m&#39;, fun)        // unwrap the wrapper of method m in class A defined by fun
+A.unwrapAll()            // unwrap all wrappers of method m in class A</pre>
+<p>If a method has multiple wrappers, it is safer to remove them using <code>A.unwrap(&#39;m&#39;, fun)</code>
+so that you don&#39;t remove a wrapper set by someone else. For this to work, you need to keep
+the wrapper function around. Here is an example</p>
+<pre class="prettyprint">var mTracer = function() { 
+    console.log(&#39;calling m of &#39;+this.name());
+    return this._inner();
+})
+A.wrap(&#39;m&#39;, mTracer);
+...
+A.unwrap(&#39;m&#39;, mTracer);</pre>
+<a name="field_wrappers"></a><h3>Field wrappers<a class="anchorlink" href="#field_wrappers"></a></h3>
+<p>Wrapping a field consists of wrapping the methods used to set and get the field,
+i.e. turning the field into an active field.</p>
+<p>Unlike method wrappers which can only be set on classes, field wrappers can be set
+on individual objects or at the class level.</p>
+<a name="wrapping_fields_at_the_object_level"></a><h4>Wrapping fields at the object level<a class="anchorlink" href="#wrapping_fields_at_the_object_level"></a></h4>
+<p>To wrap a field of an object <code>o</code>, use the following:</p>
+<pre class="prettyprint">o.wrapField(field, &lt;getter&gt;, &lt;setter&gt;, /*opt*/ owner)</pre>
+<p>Where <code>field</code> is the name of the field, <code>getter</code> and <code>setter</code> are the functions to get and set the value,
+and <code>owner</code> is an arbitrary object (defaults to the object itself) used to identify the wrapper when unwrapping the field (see below).</p>
+<p>The getter and setter functions have the same profiles as for active fields.
+In addition, they can call <code>this._get()</code> and <code>this._set(val)</code> to access the original field.
+(Note that using <code>this.f</code> in a field wrapper of the field <code>f</code> will cause an infinite recursion).</p>
+<p>Here is an example, again for tracing access to a field:</p>
+<pre class="prettyprint">o.wrapField(&#39;x&#39;,
+    function()    { console.log(&#39;getting x&#39;); return this._get(); },
+    function(val) { console.log(&#39;setting x&#39;); this._set(val); },
+);</pre>
+<p>Note that the getter or the setter can be <code>null</code>, in which case the original definition stands.</p>
+<p>As for methods wrappers, field wrappers can be nested: a field can be wrapped multiple times.
+A wrapped field can be unwrapped as follows (<code>owner</code> defaults to the object <code>o</code>):</p>
+<pre class="prettyprint">o.unwrapField(field, /*opt*/ owner)    // remove the wrapper of field f owned by owner
+o.unwrapFields(/*opt*/ owner)        // remove all wrappers of all fields of o owned by owner</pre>
+<a name="wrapping_fields_at_the_class_level"></a><h4>Wrapping fields at the class level<a class="anchorlink" href="#wrapping_fields_at_the_class_level"></a></h4>
+<p>Wrapping fields at the class level means that all <em>future</em> instances of that class
+will feature the wrapped fields. The declarations are very similar to those used above,
+except that they are applied to the class, not the object, and there is no notion of owner:</p>
+<pre class="prettyprint">A.wrapField(field, &lt;getter&gt;, &lt;setter&gt;)
+A.unwrapField(field)    // unwrap field
+A.wrappedField(field)    // true if field is wrapped</pre>
+<p>It is also possible to specify the wrappers using active fields, as follows:</p>
+<pre class="prettyprint">A.wrapFields({
+    get f1: &lt;getter&gt;,
+    set f1: &lt;setter&gt;,
+    ...
+})</pre>
+<p>Like object field wrappers, it is possible to defined multiple class field wrappers for a single field.</p>
+<a name="mixins"></a><h3>Mixins<a class="anchorlink" href="#mixins"></a></h3>
+<p>A mixin is a set of capabilities added to an existing class to modify its behavior.
+It differs from inheritance in that it does not change the identity of the class.
+It provides a flexible alternative to multiple inheritance in languages (like Javascript)
+that do not support it.</p>
+<p>In Classy, a mixin is defined by a literal object with the following (optional) properties:</p>
+<pre class="prettyprint">var mixin = {    // define a mixin
+    constructor: function() {...},
+    fields: { f1: v1, ...},
+    methods: { m: &lt;function&gt;, ...},
+    wrappers: { m1: &lt;function&gt;, ...}
+}</pre>
+<p><code>constructor</code> is called for every object created by a class to which this mixin has been added.
+There can be only one constructor and it cannot take arguments. It is called after all other initializations of the object have been performed: after initializing the fields defined in its class and those defined in the mixins (see below), and after calling the class constructor.</p>
+<p><code>fields</code> is a set of fields to be added to the target class.
+If the field is already defined in the target class, the mixin field will replace it.
+However, if the mixin field is defined as an active field and there is a field with the same name
+in the target class, then the mixin field will wrap the original field. For example, the following
+mixin is designed to wrap the field <code>x</code> of the original class:</p>
+<pre class="prettyprint">var mixin = {
+    fields: {
+        get x: function()      { console.log(&#39;getting x&#39;); return this._get(); },
+        set x: function(val) { console.log(&#39;setting x&#39;); this._set(val); },
+    }
+}</pre>
+<p><code>methods</code> is a set of methods to be added to the target class.
+Methods that are already defined in the target class are silently ignored.
+To redefine such methods, use <code>wrappers</code> instead (see below).</p>
+<p><code>wrappers</code> is a set of method wrappers. In the example below, the <code>setPosition</code> method is wrapped
+to trigger a <code>redisplay</code>, which itself is defined as a method of the mixin:</p>
+<pre class="prettyprint">var mixin = {
+    methods:  { redisplay: function() {...} },
+    wrappers: { setPosition: function(x, y) { this._inner(x, y); this.redisplay(); } }
+}</pre>
+<p>Mixins can be added to and removed from a class as follows:</p>
+<pre class="prettyprint">A.mixin(mixin)        // add mixin to A
+A.unmix(mixin)        // remove mixin from A
+A.hasMixin(mixin)    // true if mixin has been added to A</pre>
+<a name="introspection"></a><h3>Introspection<a class="anchorlink" href="#introspection"></a></h3>
+<p>All classes created with Classy have a single metaclass, called <code>Metaclass</code> and exported by the module.
+This object holds all the methods applicable to a class, most of which have been introduced before: the <code>create</code> default constructor and the methods to define constructors, fields, methods and mixins.</p>
+<p>The <code>Metaclass</code> object also features a set of methods that are useful for introspection of the classes.</p>
+<p>General class information :</p>
+<pre class="prettyprint">A.superclass()        // return parent class (Object for root classes)
+A.name(&#39;...&#39;)        // assign a name to the class
+A.className()        // return the class&#39;s name
+A.toString()        // return &#39;class &lt;className&gt;&#39;</pre>
+<p>Information about fields:</p>
+<pre class="prettyprint">A.hasOwnField(&#39;x&#39;)    // true if x is a field of A
+A.listOwnFields()    // return the list of fields of A
+A.hasField(&#39;x&#39;)        // true if x is a field of A or one of its parent classes
+A.listFields()        // return the list of fields of A and its parent classes</pre>
+<p>Information about constructors defined in the class itself:</p>
+<pre class="prettyprint">A.hasOwnConstructor(name)    // true if &#39;name&#39; is a constructor of class A
+A.getOwnConstructor(name)    // return the constructor &#39;name&#39; if defined in class A
+A.listOwnConstructors()        // return the list of constructors defined in class A</pre>
+<p>Information about constructors defined in the class itself or one of its parent classes:</p>
+<pre class="prettyprint">A.hasConstructor(name)        // true if &#39;name&#39; is a constructor available to class A
+A.getConstructor(name)        // return the constructor &#39;name&#39; if it is available to class A
+A.listConstructors()        // return the list of constructors available to class A</pre>
+<p>Information about methods defined in the class itself:</p>
+<pre class="prettyprint">A.hasOwnMethod(name)        // true if &#39;name&#39; is a method of class A
+A.getOwnMethod(name)        // return the method &#39;name&#39; if defined in class A
+A.listOwnMethods()            // return the list of methods defined in class A</pre>
+<p>Information about methods defined in the class itself or one of its parent classes:</p>
+<pre class="prettyprint">A.hasMethod(name)            // true if &#39;name&#39; is a method available to class A
+A.getMethod(name)            // return the method &#39;name&#39; if it is available to class A
+A.listMethods()                // return the list of methods available to class A</pre>
+
+  </div>
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script type="text/javascript" src="assets/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="assets/js/prettify.js"></script>
+</body>
+</html>

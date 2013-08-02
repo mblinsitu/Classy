@@ -1,0 +1,37 @@
+{
+  "name": "Classy",
+  "description": "An object-oriented library for Javascript",
+  "version": "1.0.0",
+  "homepage": "https://github.com/mblinsitu/Classy",
+  "main": "classy.js",
+  "files": ["classy.js", "oo.js", "assets"],
+  "scripts": {
+    "test": ["mocha", "karma start"]
+  },
+  "keywords": ["object-oriented framework", "classes", "mixins", "wrappers"],
+  "author": {
+    "name": "Michel Beaudouin-Lafon",
+    "email": "mbl@lri.fr",
+    "url": "http://www.lri.fr/~mbl"
+  },
+  "contributors": [{
+    "name": "Michel Beaudouin-Lafon",
+    "email": "mbl@lri.fr",
+    "url": "http://www.lri.fr/~mbl"
+  }],
+  "bugs": {
+    "url": "https://github.com/mblinsitu/Classy/issues",
+    "email": "mbl@lri.fr"
+  },
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://opensource.org/licenses/MIT"
+  }],
+  "devDependencies": {
+    "chai": ">=1.7.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mblinsitu/Classy.git"
+  }
+}

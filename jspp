@@ -1,0 +1,3 @@
+#!/bin/sh
+
+cpp $* | sed -e 's|//.*$||g' | grep -v '^#' | egrep -v '^( |\t)*$'
