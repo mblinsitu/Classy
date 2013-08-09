@@ -4,7 +4,12 @@
 (function(exports) {
 var Metaclass;
 function object(myClass, init) {
-	this.__class = myClass;
+	Object.defineProperty(this, "__class", {
+		value: myClass,
+		writable: false,
+		enumerable: false,
+		configurable: false,
+	});
 	myClass.__init(this);
 	if (init)
 		copyFields(init, this);

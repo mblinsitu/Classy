@@ -14,7 +14,13 @@ var Metaclass;
  *	then with the optional 'init' parameter, which is expected to be a literal object.
  */
 function object(myClass, init) {
-	this.__class = myClass;
+	//this.__class = myClass;
+	Object.defineProperty(this, "__class", {
+		value: myClass,
+		writable: false,
+		enumerable: false,
+		configurable: false,
+	});
 	myClass.__init(this);
 
 	// if there is a parameter, it is expected to be a list of field/values
