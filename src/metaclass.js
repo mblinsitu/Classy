@@ -239,18 +239,14 @@ Metaclass = {
 	
 	// return array with names of local constructors / methods
 	listOwnConstructors: function() {
-		var result = ['create'];
-		for (var constructor in this.__constructors)
-			if (constructor !== 'create')
-				result.push(constructor);
+		var result = Object.keys(this.__constructors);
+		if (result.length == 0)
+			return ['create'];
 		return result;
 	},
 
 	listOwnMethods: function() {
-		var result = [];
-		for (var method in this.__methods)
-			result.push(method);
-		return result;
+		return Object.keys(this.__methods);
 	},
 
 	// test existence of method and constructor in this class or one of its superclasses
