@@ -216,6 +216,8 @@ function newClass(superclass) {
 					case 1:
 						// obj.set({f1: v1, f2: v2, ...})  - sets multiple values
 						var obj = field;
+						if (!obj)
+							return this;
 						if (obj.__class) {	// this is one of our objects - use its fields
 							var fields = obj.__class.listFields();
 							for (var i = 0; i < fields.length; i++) {

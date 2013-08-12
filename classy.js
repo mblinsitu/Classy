@@ -105,6 +105,8 @@ function newClass(superclass) {
 						return this;
 					case 1:
 						var obj = field;
+						if (!obj)
+							return this;
 						if (obj.__class) {	
 							var fields = obj.__class.listFields();
 							for (var i = 0; i < fields.length; i++) {
