@@ -16,7 +16,7 @@
  */
 function wrapMixinMethod(fun, name, superclass) {
 	// optimization: no need to wrap if fun does not contain _super or _inner
-	if (fun.toString().search(/\W_super\W/m) < 0)
+	if (fun.toString().search(/\W_super\W/m) < 0) {
 		if (fun.toString().search(/\W_inner\W/m) < 0 )
 			// simple case where there is no _inner or _super: return the function itself
 			return fun;
@@ -32,7 +32,8 @@ function wrapMixinMethod(fun, name, superclass) {
 					if (savedinner) this._inner = savedinner; else delete this._inner;
 				}
 			};
-	
+	}
+
 	// this is the general case where we support both _inner and _super
 	return function() {
 		// save _super and _inner and set them to the proper values
@@ -141,7 +142,7 @@ function makeGetterSetter(obj, field, getter, setter, owner) {
 		realGetter.__orig = getter;
 		if (owner) realGetter.__owner = owner;
 	} else // *** this is to have a default getter in case none is defined. I thought we could do away with this
-		realGetter = function() { return obj[field]; }
+		realGetter = function() { return obj[field]; };
 	
 	// the function that wraps the setter so that this._set() is defined
 	var realSetter = setter;
@@ -159,7 +160,7 @@ function makeGetterSetter(obj, field, getter, setter, owner) {
 		realSetter.__orig = setter;
 		if (owner) realSetter.__owner = owner;
 	} else // *** this is to have a default setter in case none is defined. I thought we could do away with this
-		realSetter = function(val) { obj[field] = val; }
+		realSetter = function(val) { obj[field] = val; };
 	
 	return {
 		getter: realGetter,
@@ -211,7 +212,17 @@ function wrapFields(fields, obj, owner) {
 	var d;
 	for (var field in fields) {
 		d = Object.getOwnPropertyDescriptor(fields, field);
-		wrapField(obj, field, d.get, d.set, owner);
+		if (d.get || d.set)
+			wrapField(obj, field, d.get, d.set, owner);
+		else {
+			// it's not defined as an active field but as a special case
+			// we consider it as such if it is defined with a literal object 
+			// with properties set and/or get
+			// *** this works ONLY for mixin.fieldWrappers, NOT for aClass.wrapFields(...)
+			var f = fields[field];
+			if (f.set || f.get)
+				wrapField(obj, field, f.get, f.set, owner);
+		}
 	}
 }
 
@@ -255,7 +266,7 @@ function unwrapField(obj, field, owner) {
 				if (getter)
 					d.get = wrapped.getter || getter;
 				if (setter)
-					d.set = wrapped.setter || setter
+					d.set = wrapped.setter || setter;
 				Object.defineProperty(obj, field, d);
 			} else
 				obj[field] = obj[wrappedField];

@@ -8,31 +8,31 @@ describe('Method wrappers:', function() {
 		A.method('trace', function (msg) {if (msg) this._trace += msg; var res = this._trace; if (! msg) this._trace = ''; return res; });
 		A.method('m', function() { this.trace('A::m'); });
 		a = A.create();
-	})
+	});
 
 	it('simple wrapping', function() { 
 		a.m();
 		a.trace().should.equal('A::m'); 
 
-		A.wrap('m', function() { this.trace('A before - '); this._inner(); this.trace(' - A after') });
+		A.wrap('m', function() { this.trace('A before - '); this._inner(); this.trace(' - A after'); });
 		a.m();
 		a.trace().should.equal('A before - A::m - A after'); 
-	})
+	});
 	
 	describe('inheritance:', function() {
 		var B, b;
 
 		beforeEach(function() {
-			A.wrap('m', function() { this.trace('A before - '); this._inner(); this.trace(' - A after') });
+			A.wrap('m', function() { this.trace('A before - '); this._inner(); this.trace(' - A after'); });
 			B = A.subclass().name('B');
-			B.wrap('m', function() { this.trace('B before - '); this._inner(); this.trace(' - B after') });
+			B.wrap('m', function() { this.trace('B before - '); this._inner(); this.trace(' - B after'); });
 			b = B.create();
-		})
+		});
 
 		it('wrapping inherited method', function() {
 			b.m();
 			b.trace().should.equal('B before - A before - A::m - A after - B after');
-		})
+		});
 
 		// super in the method
 		it('call to super', function() {
@@ -41,10 +41,10 @@ describe('Method wrappers:', function() {
 			b.m();
 			b.trace().should.equal('A before - A::m - A after - B::m');
 
-			B.wrap('m', function() { this.trace('B before - '); this._inner();  this.trace(' - B after') });
+			B.wrap('m', function() { this.trace('B before - '); this._inner();  this.trace(' - B after'); });
 			b.m();
 			b.trace().should.equal('B before - A before - A::m - A after - B::m - B after');
-		})
+		});
 
 		// super in the wrapper
 		it('wrapping with call to super', function() {
@@ -54,7 +54,7 @@ describe('Method wrappers:', function() {
 			b.m();
 			b.trace().should.equal('A before - A::m - A after');
 		})
-	
+	;
 		// super and inner in the wrap
 		it('wrapping with call to super and inner', function() {
 			B.method('m', null); // since m is wrapped, we want to undefine it first
@@ -62,8 +62,8 @@ describe('Method wrappers:', function() {
 			B.wrap('m', function() { this._super(); this._inner(); });
 			b.m();
 			b.trace().should.equal('A before - A::m - A after - B::m');
-		})
-	})
+		});
+	});
 	
 	// double wrap
 	it('double wrap', function() {
@@ -94,20 +94,21 @@ describe('Method wrappers:', function() {
 		A.unwrap('m2');
 		a2.m2(); 
 		a2.trace().should.equal('A::m2');
-	})
+	});
 
 	it('wrapping unexistent method', function() {
+		/*jshint expr:true */
 		A.wrap('m3', function() { this.trace('A::m3'); this._inner(); });
 		A.hasOwnMethod('m3').should.be.true;		//wrapper exists
 
 		A.unwrap('m3');
 		A.hasOwnMethod('m3').should.be.false;		//undefined after unwrap
-	})
+	});
 	
 	it('wrapping with inner', function() {
-		function w1() { this.trace('w1>'); this._inner(); this.trace('<w1'); };
-		function w2() { this.trace('w2>'); this._inner(); this.trace('<w2'); };
-		function w3() { this.trace('w3>'); this._inner(); this.trace('<w3'); };
+		function w1() { this.trace('w1>'); this._inner(); this.trace('<w1'); }
+		function w2() { this.trace('w2>'); this._inner(); this.trace('<w2'); }
+		function w3() { this.trace('w3>'); this._inner(); this.trace('<w3'); }
 		var a2 = A.create();
 
 		// wrapped w1 w2 w3
@@ -132,11 +133,12 @@ describe('Method wrappers:', function() {
 
 		// undefined after unwrap
 		A.unwrap('m3', w3);
+		/*jshint expr:true */
 		A.hasOwnMethod('m3').should.be.false;
-	})
+	});
 	
 	it('shared wrappers', function() {
-		function wrapit() { this.trace('w> '); this.trace(this.nm); this.trace(' <w')};
+		function wrapit() { this.trace('w> '); this.trace(this.nm); this.trace(' <w'); }
 		var B1 = A.subclass().name('A1').field('nm', 'B1').method('m', function() { this.trace('B1::m'); }).wrap('m', wrapit);
 		var B2 = A.subclass().name('A2').field('nm', 'B2').method('m', function() { this.trace('B2::m'); }).wrap('m', wrapit);
 		var b1 = B1.create();
@@ -150,7 +152,7 @@ describe('Method wrappers:', function() {
 		b2.m();
 		b2.trace().should.equal('w> B2 <w');
 
-	})
+	});
 
 });
 
@@ -161,7 +163,7 @@ describe('Mixins:', function() {
 		A = OO.newClass().name('A');
 		A.fields({ x: 0, y: 0, color: 'red' });
 		A.field('_trace', '');
-		A.constructor(function() { this.trace('new A') });
+		A.constructor(function() { this.trace('new A'); });
 		A.method('trace', function (msg) {if (msg) this._trace += msg; var res = this._trace; if (! msg) this._trace = ''; return res; });
 		A.method('m', function() { this.trace('A::m'); });
 		A.method('w', function() { this.trace('A::w'); });
@@ -179,19 +181,19 @@ describe('Mixins:', function() {
 				mm: function() { this.trace('mixin::mm'); },			
 			},
 			wrappers: {
-				w: function() { this.trace('mixin::w> '); this._inner(); this.trace(' <mixin::w') },
+				w: function() { this.trace('mixin::w> '); this._inner(); this.trace(' <mixin::w'); },
 				
 			},
 		};
 		
 		a = A.create();
-	})
+	});
 
 	it('before mixin', function() {
 		a.trace().should.equal('new A');
 		a.m(); a.trace().should.equal('A::m');
 		a.w(); a.trace().should.equal('A::w');		
-	})
+	});
 	
 	it('after mixin', function() {
 		a.trace().should.equal('new A');
@@ -200,14 +202,14 @@ describe('Mixins:', function() {
 		a.m(); a.trace().should.equal('A::m');
 		a.mm(); a.trace().should.equal('mixin::mm');
 		a.w(); a.trace().should.equal('mixin::w> A::w <mixin::w');
-	})
+	});
 
 	it('redefined wrapped method', function() {
 		a.trace().should.equal('new A');
 		A.mixin(mix);
 		A.method('w', function() { this.trace("new A::w"); });
 		a.w(); a.trace().should.equal('mixin::w> new A::w <mixin::w');
-	})
+	});
 	
 	it('after mixin removed', function() {
 		a.trace().should.equal('new A');
@@ -216,8 +218,9 @@ describe('Mixins:', function() {
 		A.unmix(mix);
 		a.m(); a.trace().should.equal('A::m');
 		a.w(); a.trace().should.equal('new A::w');
+		/*jshint expr:true */
 		A.hasOwnMethod('mm').should.be.false;
-	})
+	});
 	
 });
 // [end mixin]

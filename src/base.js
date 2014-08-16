@@ -115,7 +115,7 @@ function constructorWithSuper(myClass, name, fun) {
 	var superclass = myClass.__superclass;
 	
 	// if there is no call to super, simply call the constructor function and the mixins' constructors
-	if (fun.toString().search(/\W_super\W/m) < 0)
+	if (fun.toString().search(/\W_super\W/m) < 0) {
 #ifdef MIXIN
 		return function() {
 			fun.apply(this, arguments);
@@ -126,6 +126,7 @@ function constructorWithSuper(myClass, name, fun) {
 #else
 		return fun;
 #endif
+	}
 
 	// general case
 	return function() {
@@ -171,6 +172,153 @@ function methodWithSuper(fun, name, superclass) {
 }
 
 /*
+ *	Each base class has a few object methods (in addition to those in Object, of course)
+ *		set can be used to set multiple field values at once
+ *		get can be used to get multiple field values at once
+ *		wrapField can be used to immediately wrap a field of this object
+ *		unwrapField can be used to remove it. 
+ *			Use a class as 'owner' to remove a field wrapped by a class,
+ *			and a mixin to remove a field wrapped by the mixin.
+ */
+var objectMethods = {
+	toString: function() { return this.__class ? 'instance of ' + this.__class : '[unknown Classy Object]';},
+	className: function() { return this.__class.__name; },
+	// classs (with 3ss because 'class' is reserved)
+	classs: function() { return this.__class; },
+	// Set one or more fields at once. 3 possible syntax:
+	//	obj.set('field1', value1, 'field2', value2, ...)
+	//	obj.set(['field1', 'field2', ...], [value1, value2, ...])
+	//	obj.set({ field1: value, fields2: value2, ...})  - works also with one of our objects (use it's declared fields)
+	// Fields that are not defined as such are ignored
+	// set always returns the this object
+	set: function(field, value /*varargs*/) {
+		var i, name;
+		switch(arguments.length) {
+			case 0:
+				return this;
+
+			case 1:
+				// obj.set({f1: v1, f2: v2, ...})  - sets multiple values
+				var obj = field;
+				if (!obj)
+					return this;
+				if (obj.__class) {	// this is one of our objects - use its fields
+					var fields = obj.__class.listFields();
+					for (i = 0; i < fields.length; i++) {
+						name = fields[i];
+						if (this.__class.hasField(name))
+							this[name] = obj[name];
+					}
+				} else {
+					for (name in obj)
+						if (this.__class.hasField(name))
+							this[name] = obj[name];
+				}
+				return this;
+
+			case 2:
+				// obj.set(["f1", "f2", "f3"], [v1, v2,v3])  - sets multiple values
+				if (field instanceof Array && value instanceof Array) {
+					for (i = 0; i < field.length; i++) {
+						name = field[i];
+						if (this.__class.hasField(name))
+							this[name] = value[i];
+					}
+					return this;
+				}
+				// fallthrough to catch the case obj.set('field', value)
+				/*fall through*/
+			default:
+				// obj.set("field", value, ...)
+				for (i = 0; i < arguments.length; i+= 2) {
+					name = arguments[i];
+					value = arguments[i+1];
+					if (this.__class.hasField(field))
+						this[name] = value;
+				}
+				return this;
+		}
+	},
+	// get the value of one or more fields. 5 possible syntax:
+	//	obj.get()  - returns all the fields and their values in a literal object
+	//	obj.get('field')  - returns value
+	//	obj.get('field1', 'field2', ...)  - returns a flat field, value, ... list
+	//	obj.get(['field1', 'field2', ...])  - returns an array of values
+	//	obj.get({ field: v1, field2: v2, ...})  - values of existing fields are ignored, returns an object (works with one of our objects too)
+	get: function(field /*varargs*/) {
+		var obj, fields;
+		var i, name;
+		switch (arguments.length) {
+			case 0:
+				//	obj.get()  - returns all the fields
+				fields = this.__class.listFields();
+				obj = {};
+				for (i = 0; i < fields.length; i++) {
+					name = fields[i];
+					obj[name] = this[name];
+				}
+				return obj;
+
+			case 1:
+				// obj.get(["f1", "f2", "f3"])  - returns array of values
+				if (field instanceof Array) {
+					var values = [];
+					for (i = 0; i < field.length; i++) {
+						name = field[i];
+						if (this.__class.hasField(name))
+							values.push(this[name]);
+						else
+							values.push(undefined);
+					}
+					return values;
+				}
+
+				// obj.get("field")  - returns single value
+				if (typeof field == 'string' || field instanceof String) {
+					if (this.__class.hasField(field))
+						return this[field];
+					return undefined;
+				}
+
+				// obj.get({f1: v1, f2: v2, ...})  - values are ignored
+				if (typeof field == 'object') {
+					obj = {};
+					if (field.__class) {	// this is one of our objects
+						fields = field.__class.listFields();
+						for (i = 0; i < fields.length; i++) {
+							name = fields[i];
+							if (this.__class.hasField(name))
+								obj[name] = this[name];
+						}
+					} else {
+						for (name in field)
+							if (this.__class.hasField(name))
+								obj[name] = this[name];
+					}
+					return obj;					
+				}
+				return null;
+
+			default:
+				//	obj.get('field1', 'field2', ...)  - returns a flat field, value list
+				var result = [];
+				for (i = 0; i < arguments.length; i++) {
+					name = arguments[i];
+					if (this.__class.hasField(name))
+						result.push(name, this[name]);
+				}
+				return result;
+		}
+	},
+#ifdef MIXIN
+	wrapField: function(field, getter, setter, /*opt*/ owner) { wrapField(this, field, getter, setter, owner || this); return this; },
+	wrapFields: function(fields, /*opt*/ owner) { wrapFields(fields, this, owner || this); },
+	unwrapField: function(field, /*opt*/ owner) { unwrapField(this, field, owner || this); return this; },
+	unwrapFields: function(/*opt*/ owner) { unwrapFields(this, owner || this); return this; },
+#endif
+};
+
+/*
  *	Create a new class
  */
 function newClass(superclass) {
@@ -191,148 +339,16 @@ function newClass(superclass) {
 		// the tail of the constructors delegation chain.
 		constructors = {};
 		
-		// each base class has a few object methods (in addition to those in Object, of course)
-		// set can be used to set multiple field values at once
-		// get can be used to get multiple field values at once
-		// wrapField can be used to immediately wrap a field of this object
-		// unwrapField can be used to remove it. Use a class as 'owner' to remove a field wrapped by a class,
-		// and a mixin to remove a field wrapped by the mixin.
-		methods = {
-			toString: function() { return this.__class ? 'instance of ' + this.__class : '[unknown Classy Object]';},
-			className: function() { return this.__class.__name; },
-			// classs (with 3ss because 'class' is reserved)
-			classs: function() { return this.__class; },
-			// Set one or more fields at once. 3 possible syntax:
-			//	obj.set('field1', value1, 'field2', value2, ...)
-			//	obj.set(['field1', 'field2', ...], [value1, value2, ...])
-			//	obj.set({ field1: value, fields2: value2, ...})  - works also with one of our objects (use it's declared fields)
-			// Fields that are not defined as such are ignored
-			// set always returns the this object
-			set: function(field, value /*varargs*/) {
-				switch(arguments.length) {
-					case 0:
-						return this;
-
-					case 1:
-						// obj.set({f1: v1, f2: v2, ...})  - sets multiple values
-						var obj = field;
-						if (!obj)
-							return this;
-						if (obj.__class) {	// this is one of our objects - use its fields
-							var fields = obj.__class.listFields();
-							for (var i = 0; i < fields.length; i++) {
-								var name = fields[i];
-								if (this.__class.hasField(name))
-									this[name] = obj[name];
-							}
-						} else {
-							for (var name in obj)
-								if (this.__class.hasField(name))
-									this[name] = obj[name];
-						}
-						return this;
-
-					case 2:
-						// obj.set(["f1", "f2", "f3"], [v1, v2,v3])  - sets multiple values
-						if (field instanceof Array && value instanceof Array) {
-							for (var i = 0; i < field.length; i++) {
-								var name = field[i];
-								if (this.__class.hasField(name))
-									this[name] = value[i];
-							}
-							return this;
-						}
-						// fallthrough to catch the case obj.set('field', value)
-					default:
-						// obj.set("field", value, ...)
-						for (var i = 0; i < arguments.length; i+= 2) {
-							var name = arguments[i], value = arguments[i+1];
-							if (this.__class.hasField(field))
-								this[name] = value;
-						}
-						return this;
-				}
-			},
-			// get the value of one or more fields. 5 possible syntax:
-			//	obj.get()  - returns all the fields and their values in a literal object
-			//	obj.get('field')  - returns value
-			//	obj.get('field1', 'field2', ...)  - returns a flat field, value, ... list
-			//	obj.get(['field1', 'field2', ...])  - returns an array of values
-			//	obj.get({ field: v1, field2: v2, ...})  - values of existing fields are ignored, returns an object (works with one of our objects too)
-			get: function(field /*varargs*/) {
-				switch (arguments.length) {
-					case 0:
-						//	obj.get()  - returns all the fields
-						var fields = this.__class.listFields();
-						var obj = {};
-						for (var i = 0; i < fields.length; i++) {
-							var name = fields[i];
-							obj[name] = this[name];
-						}
-						return obj;
-
-					case 1:
-						// obj.get(["f1", "f2", "f3"])  - returns array of values
-						if (field instanceof Array) {
-							var values = [];
-							for (var i = 0; i < field.length; i++) {
-								var name = field[i];
-								if (this.__class.hasField(name))
-									values.push(this[name]);
-								else
-									values.push(undefined);
-							}
-							return values;
-						}
-
-						// obj.get("field")  - returns single value
-						if (typeof field == 'string' || field instanceof String) {
-							if (this.__class.hasField(field))
-								return this[field];
-							return undefined;
-						}
-
-						// obj.get({f1: v1, f2: v2, ...})  - values are ignored
-						if (typeof field == 'object') {
-							var obj = {};
-							if (obj.__class) {	// this is one of our objects
-								var fields = obj.__class.listFields();
-								for (var i = 0; i < fields.length; i++) {
-									var name = fields[i];
-									if (this.__class.hasField(name))
-										obj[name] = this[name];
-								}
-							} else {
-								for (name in field)
-									if (this.__class.hasField(name))
-										obj[name] = this[name];
-							}
-							return obj;					
-						}
-						return null;
-
-					default:
-						//	obj.get('field1', 'field2', ...)  - returns a flat field, value list
-						var result = [];
-						for (var i = 0; i < arguments.length; i++) {
-							var name = arguments[i];
-							if (this.__class.hasField(name))
-								result.push(name, this[name]);
-						}
-						return result;
-				}
-			},
-#ifdef MIXIN
-			wrapField: function(field, getter, setter, /*opt*/ owner) { wrapField(this, field, getter, setter, owner || this); return this; },
-			unwrapField: function(field, /*opt*/ owner) { unwrapField(this, field, owner || this); return this; },
-			unwrapFields: function(/*opt*/ owner) { unwrapFields(this, owner || this); return this; },
-#endif
-		};
+		// the methods defined in every class
+		function methodTable() {}
+	    methodTable.prototype = objectMethods; 
+	    methods = new methodTable(); 
 	} else { // it's a new subclass
 		// chain the metaclass to the superclass's metaclass
 		classProto.prototype = superclass.__metaclass;
 		
 		// create a constructor table that is chained to the superclass's constructor table
+		/*jshint supernew: true*/
 		var ctorTable = new Function(); // function ctorTable() {}
 		ctorTable.prototype = superclass.__constructors;
 		constructors = new ctorTable();

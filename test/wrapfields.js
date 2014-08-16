@@ -1,7 +1,7 @@
 
 // [begin wrapfield]
 describe('Wrapped fields:', function() {
-	var A, a;
+	var A, a, dummy;
 
 	beforeEach(function() {
 		A = OO.newClass().name('A');
@@ -15,21 +15,21 @@ describe('Wrapped fields:', function() {
 		);
 		
 		a = A.create();
-	})
+	});
 
 	it('set/get', function() {
 		a.x = 10; 
 		a.trace().should.equal('set x; ');
 
-		a.x; 
+		dummy = a.x;
 		a.trace().should.equal('get x; ');
 
 		a.x += 10; 
 		a.trace().should.equal('get x; set x; ');
 		a.x.should.equal(20);
 
-		a.trace()
-	})
+		a.trace();
+	});
 	
 	it('single object', function() {
 		// wrapping and unwrapping a field of a single object
@@ -43,15 +43,17 @@ describe('Wrapped fields:', function() {
 
 		a.unwrapField('y');
 		a.y = a.y + 20;
+		/*jshint expr:true*/
 		a.trace().should.be.empty;
 		
 		// unwrapping a class field in an existing object
 		a.unwrapField('x', A);
 		a.x += 10;
 		a.trace().should.be.empty;
-	})
+	});
 	
 	it('unwrapping class-level field', function() {
+		/*jshint expr:true*/
 		// unwrapping a field at the class level
 		A.wrappedField('x').should.be.true;
 
@@ -61,7 +63,7 @@ describe('Wrapped fields:', function() {
 		var a2 = A.create();
 		a2.x = a2.x + 1; 
 		a2.trace().should.be.empty;	
-	})
+	});
 	
 	describe('read-only fields:', function() {
 		var B, b, count;
@@ -79,17 +81,17 @@ describe('Wrapped fields:', function() {
 			
 			// wrapping an undefined field
 			b = B.create();
-		})
+		});
 
 		it('undefined field', function() {
 			should.not.exist(b.x);
 			b.x = 2;
 			b.x.should.equal(2);
 
-		})
+		});
 
 		it('wrapping field with a getter or setter only', function() {
-			b.ro; // 1
+			dummy = b.ro; // 1
 			b.ro.should.equal(2);
 			var error = "";
 			try {
@@ -97,6 +99,7 @@ describe('Wrapped fields:', function() {
 			} catch(err) {
 				error = "set error";
 			}
+			/*jshint expr:true*/
 			error.should.be.empty;	// note: fails on modern javascript interpreters: undefined setter is just ignored
 			b.ro.should.equal(3);
 
@@ -107,8 +110,8 @@ describe('Wrapped fields:', function() {
 			b = B.create();
 			b.ro = 10;
 			b.ro.should.equal(11);
-		})
-	})	
+		});
+	});
 });
 
 describe('Mixin with wrapped fields:', function() {
@@ -135,7 +138,7 @@ describe('Mixin with wrapped fields:', function() {
 				set y(val) { this.trace('set y; '); this._set(val); },
 			}
 		};
-	})
+	});
 
 	it('before mixin', function() {
 		var a = A.create();
@@ -143,9 +146,9 @@ describe('Mixin with wrapped fields:', function() {
 		a.x = 10;
 		a.trace().should.equal('set x; ');
 
-		a.x;
+		dummy = a.x;
 		a.trace().should.equal('get x; ');
-	})
+	});
 
 	it('after mixin', function() {
 		A.mixin(myMixin);
@@ -156,7 +159,7 @@ describe('Mixin with wrapped fields:', function() {
 		a.trace().should.equal('set x (2); set x; ');
 
 		// get double wrapped field
-		a.x;
+		dummy = a.x;
 		a.trace().should.equal('get x (2); get x; ');
 
 		// set wrapped field
@@ -164,13 +167,13 @@ describe('Mixin with wrapped fields:', function() {
 		a.trace().should.equal('set y; ');
 
 		// get wrapped field
-		a.y;
+		dummy = a.y;
 		a.trace().should.equal('get y; ');
 
 		// change wrapped field
 		a.y += 10;
 		a.trace().should.equal('get y; set y; ');
-	})
+	});
 
 	it('unwrapping class and mixin fields at the object level', function() {
 		A.mixin(myMixin);
@@ -184,6 +187,7 @@ describe('Mixin with wrapped fields:', function() {
 		// unwrap mixin field
 		a.unwrapField('y', myMixin);
 		a.y += 15;
+		/*jshint expr:true*/
 		a.trace().should.be.empty;
 
 		// unwrap class field
@@ -191,12 +195,13 @@ describe('Mixin with wrapped fields:', function() {
 		a2.unwrapField('x', myMixin);
 		a2.x += 25;
 		a2.trace().should.equal('get x; set x; ');
-	})
+	});
 		
 	it('unwrap all mixin fields', function() {
 		A.mixin(myMixin);
 		var a = A.create();
 
+		/*jshint expr:true*/
 		// unwrap all mixin fields
 		a.unwrapFields(myMixin);
 		a.x += 5; a.trace().should.equal('get x; set x; ');
@@ -206,5 +211,5 @@ describe('Mixin with wrapped fields:', function() {
 		a.unwrapFields(A);
 		a.x += 5; a.trace().should.be.empty;
 		a.y += 7; a.trace().should.be.empty;
-	})
+	});
 });

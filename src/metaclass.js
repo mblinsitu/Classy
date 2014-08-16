@@ -56,10 +56,15 @@ Metaclass = {
 	toString: function() {
 		return 'class '+ (this.__name || '');
 	},
+
+	// same as toString for util.inspect
+	inspect: function() {
+		return this.toString();
+	},
 	
 	// ======== OBJECT CREATION ========
 
-	// intialize the properties of a new object from the default values of the field
+	// initialize the properties of a new object from the default values of the field
 	__init: function(obj) {
 		// walk up the inheritance chain to start at the top
 		if (this.__superclass !== Object)
@@ -204,7 +209,7 @@ Metaclass = {
 			return this;
 		}
 #ifdef MIXIN
-		var wrappers = wrappers = unwrapWrappers(this, name);
+		var wrappers = unwrapWrappers(this, name);
 #endif
 		fun = methodWithSuper(fun, name, this.__superclass);
 		this.__methods[name] = fun;
@@ -240,7 +245,7 @@ Metaclass = {
 	// return array with names of local constructors / methods
 	listOwnConstructors: function() {
 		var result = Object.keys(this.__constructors);
-		if (result.length == 0)
+		if (result.length === 0)
 			return ['create'];
 		return result;
 	},
@@ -271,26 +276,28 @@ Metaclass = {
 	listConstructors: function() {
 		var cl = this;
 		var result = ['create'];
-		var constructor;
-		do {
-			for (constructor in cl.__constructors)
-				if (result.indexOf(constructor) < 0)
-					result.push(constructor);
-			cl = cl.__superclass;
-		} while (cl != Object);
+		for (var constructor in cl.__constructors) 
+			result.push(constructor);
 		return result;
 	},
 
 	listMethods: function() {
 		var cl = this;
 		var result = [];
-		var method;
+/*	This does not work because 'in' returns all the default object methods, which we don't want to list
+		for (method in cl.__methods)
+				result.push(method);
+*/
 		do {
-			for (method in cl.__methods)
+			var methods = cl.listOwnMethods();
+			for (var i = 0; i < methods.length; i++) {
+				var method = methods[i];
 				if (result.indexOf(method) < 0)
 					result.push(method);
+			}
 			cl = cl.__superclass;
 		} while (cl != Object);
+
 		return result;
 	},
 

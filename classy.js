@@ -54,13 +54,14 @@ function copyActiveFields(fields, obj) {
 function noSuper() {}
 function constructorWithSuper(myClass, name, fun) {
 	var superclass = myClass.__superclass;
-	if (fun.toString().search(/\W_super\W/m) < 0)
+	if (fun.toString().search(/\W_super\W/m) < 0) {
 		return function() {
 			fun.apply(this, arguments);
 			for (var m = 0; m < myClass.__mixins.length; m++)
 				myClass.__mixins[m].constructor.apply(this);
 			return this;
 		};
+	}
 	return function() {
 		var savedsuper = this._super;
 		this._super = (superclass == Object) ? noSuper : (superclass.__constructors[name] || noSuper);
@@ -87,6 +88,112 @@ function methodWithSuper(fun, name, superclass) {
 		}
 	};
 }
+var objectMethods = {
+	toString: function() { return this.__class ? 'instance of ' + this.__class : '[unknown Classy Object]';},
+	className: function() { return this.__class.__name; },
+	classs: function() { return this.__class; },
+	set: function(field, value ) {
+		var i, name;
+		switch(arguments.length) {
+			case 0:
+				return this;
+			case 1:
+				var obj = field;
+				if (!obj)
+					return this;
+				if (obj.__class) {	
+					var fields = obj.__class.listFields();
+					for (i = 0; i < fields.length; i++) {
+						name = fields[i];
+						if (this.__class.hasField(name))
+							this[name] = obj[name];
+					}
+				} else {
+					for (name in obj)
+						if (this.__class.hasField(name))
+							this[name] = obj[name];
+				}
+				return this;
+			case 2:
+				if (field instanceof Array && value instanceof Array) {
+					for (i = 0; i < field.length; i++) {
+						name = field[i];
+						if (this.__class.hasField(name))
+							this[name] = value[i];
+					}
+					return this;
+				}
+			default:
+				for (i = 0; i < arguments.length; i+= 2) {
+					name = arguments[i];
+					value = arguments[i+1];
+					if (this.__class.hasField(field))
+						this[name] = value;
+				}
+				return this;
+		}
+	},
+	get: function(field ) {
+		var obj, fields;
+		var i, name;
+		switch (arguments.length) {
+			case 0:
+				fields = this.__class.listFields();
+				obj = {};
+				for (i = 0; i < fields.length; i++) {
+					name = fields[i];
+					obj[name] = this[name];
+				}
+				return obj;
+			case 1:
+				if (field instanceof Array) {
+					var values = [];
+					for (i = 0; i < field.length; i++) {
+						name = field[i];
+						if (this.__class.hasField(name))
+							values.push(this[name]);
+						else
+							values.push(undefined);
+					}
+					return values;
+				}
+				if (typeof field == 'string' || field instanceof String) {
+					if (this.__class.hasField(field))
+						return this[field];
+					return undefined;
+				}
+				if (typeof field == 'object') {
+					obj = {};
+					if (field.__class) {	
+						fields = field.__class.listFields();
+						for (i = 0; i < fields.length; i++) {
+							name = fields[i];
+							if (this.__class.hasField(name))
+								obj[name] = this[name];
+						}
+					} else {
+						for (name in field)
+							if (this.__class.hasField(name))
+								obj[name] = this[name];
+					}
+					return obj;					
+				}
+				return null;
+			default:
+				var result = [];
+				for (i = 0; i < arguments.length; i++) {
+					name = arguments[i];
+					if (this.__class.hasField(name))
+						result.push(name, this[name]);
+				}
+				return result;
+		}
+	},
+	wrapField: function(field, getter, setter,  owner) { wrapField(this, field, getter, setter, owner || this); return this; },
+	wrapFields: function(fields,  owner) { wrapFields(fields, this, owner || this); },
+	unwrapField: function(field,  owner) { unwrapField(this, field, owner || this); return this; },
+	unwrapFields: function( owner) { unwrapFields(this, owner || this); return this; },
+};
 function newClass(superclass) {
 	if (! superclass) 
 		superclass = Object;
@@ -95,107 +202,9 @@ function newClass(superclass) {
 	if (superclass === Object) { 
 		classProto.prototype = Metaclass;
 		constructors = {};
-		methods = {
-			toString: function() { return this.__class ? 'instance of ' + this.__class : '[unknown Classy Object]';},
-			className: function() { return this.__class.__name; },
-			classs: function() { return this.__class; },
-			set: function(field, value ) {
-				switch(arguments.length) {
-					case 0:
-						return this;
-					case 1:
-						var obj = field;
-						if (!obj)
-							return this;
-						if (obj.__class) {	
-							var fields = obj.__class.listFields();
-							for (var i = 0; i < fields.length; i++) {
-								var name = fields[i];
-								if (this.__class.hasField(name))
-									this[name] = obj[name];
-							}
-						} else {
-							for (var name in obj)
-								if (this.__class.hasField(name))
-									this[name] = obj[name];
-						}
-						return this;
-					case 2:
-						if (field instanceof Array && value instanceof Array) {
-							for (var i = 0; i < field.length; i++) {
-								var name = field[i];
-								if (this.__class.hasField(name))
-									this[name] = value[i];
-							}
-							return this;
-						}
-					default:
-						for (var i = 0; i < arguments.length; i+= 2) {
-							var name = arguments[i], value = arguments[i+1];
-							if (this.__class.hasField(field))
-								this[name] = value;
-						}
-						return this;
-				}
-			},
-			get: function(field ) {
-				switch (arguments.length) {
-					case 0:
-						var fields = this.__class.listFields();
-						var obj = {};
-						for (var i = 0; i < fields.length; i++) {
-							var name = fields[i];
-							obj[name] = this[name];
-						}
-						return obj;
-					case 1:
-						if (field instanceof Array) {
-							var values = [];
-							for (var i = 0; i < field.length; i++) {
-								var name = field[i];
-								if (this.__class.hasField(name))
-									values.push(this[name]);
-								else
-									values.push(undefined);
-							}
-							return values;
-						}
-						if (typeof field == 'string' || field instanceof String) {
-							if (this.__class.hasField(field))
-								return this[field];
-							return undefined;
-						}
-						if (typeof field == 'object') {
-							var obj = {};
-							if (obj.__class) {	
-								var fields = obj.__class.listFields();
-								for (var i = 0; i < fields.length; i++) {
-									var name = fields[i];
-									if (this.__class.hasField(name))
-										obj[name] = this[name];
-								}
-							} else {
-								for (name in field)
-									if (this.__class.hasField(name))
-										obj[name] = this[name];
-							}
-							return obj;					
-						}
-						return null;
-					default:
-						var result = [];
-						for (var i = 0; i < arguments.length; i++) {
-							var name = arguments[i];
-							if (this.__class.hasField(name))
-								result.push(name, this[name]);
-						}
-						return result;
-				}
-			},
-			wrapField: function(field, getter, setter,  owner) { wrapField(this, field, getter, setter, owner || this); return this; },
-			unwrapField: function(field,  owner) { unwrapField(this, field, owner || this); return this; },
-			unwrapFields: function( owner) { unwrapFields(this, owner || this); return this; },
-		};
+		function methodTable() {}
+	    methodTable.prototype = objectMethods; 
+	    methods = new methodTable(); 
 	} else { 
 		classProto.prototype = superclass.__metaclass;
 		var ctorTable = new Function(); 
@@ -220,7 +229,7 @@ function newClass(superclass) {
 	return new cls();
 }
 function wrapMixinMethod(fun, name, superclass) {
-	if (fun.toString().search(/\W_super\W/m) < 0)
+	if (fun.toString().search(/\W_super\W/m) < 0) {
 		if (fun.toString().search(/\W_inner\W/m) < 0 )
 			return fun;
 		else
@@ -233,6 +242,7 @@ function wrapMixinMethod(fun, name, superclass) {
 					if (savedinner) this._inner = savedinner; else delete this._inner;
 				}
 			};
+	}
 	return function() {
 		var savedsuper = this._super;
 		this._super = (superclass == Object) ? noSuper : (superclass.__methods[name] || noSuper);
@@ -298,7 +308,7 @@ function makeGetterSetter(obj, field, getter, setter, owner) {
 		realGetter.__orig = getter;
 		if (owner) realGetter.__owner = owner;
 	} else 
-		realGetter = function() { return obj[field]; }
+		realGetter = function() { return obj[field]; };
 	var realSetter = setter;
 	if (setter) {
 		realSetter = function(val) {
@@ -314,7 +324,7 @@ function makeGetterSetter(obj, field, getter, setter, owner) {
 		realSetter.__orig = setter;
 		if (owner) realSetter.__owner = owner;
 	} else 
-		realSetter = function(val) { obj[field] = val; }
+		realSetter = function(val) { obj[field] = val; };
 	return {
 		getter: realGetter,
 		setter: realSetter
@@ -351,7 +361,13 @@ function wrapFields(fields, obj, owner) {
 	var d;
 	for (var field in fields) {
 		d = Object.getOwnPropertyDescriptor(fields, field);
-		wrapField(obj, field, d.get, d.set, owner);
+		if (d.get || d.set)
+			wrapField(obj, field, d.get, d.set, owner);
+		else {
+			var f = fields[field];
+			if (f.set || f.get)
+				wrapField(obj, field, f.get, f.set, owner);
+		}
 	}
 }
 function unwrapField(obj, field, owner) {
@@ -381,7 +397,7 @@ function unwrapField(obj, field, owner) {
 				if (getter)
 					d.get = wrapped.getter || getter;
 				if (setter)
-					d.set = wrapped.setter || setter
+					d.set = wrapped.setter || setter;
 				Object.defineProperty(obj, field, d);
 			} else
 				obj[field] = obj[wrappedField];
@@ -405,6 +421,9 @@ Metaclass = {
 	},
 	toString: function() {
 		return 'class '+ (this.__name || '');
+	},
+	inspect: function() {
+		return this.toString();
 	},
 	__init: function(obj) {
 		if (this.__superclass !== Object)
@@ -506,7 +525,7 @@ Metaclass = {
 			delete this.__methods[name];
 			return this;
 		}
-		var wrappers = wrappers = unwrapWrappers(this, name);
+		var wrappers = unwrapWrappers(this, name);
 		fun = methodWithSuper(fun, name, this.__superclass);
 		this.__methods[name] = fun;
 		wrapWrappers(this, name, wrappers);
@@ -531,7 +550,7 @@ Metaclass = {
 	},
 	listOwnConstructors: function() {
 		var result = Object.keys(this.__constructors);
-		if (result.length == 0)
+		if (result.length === 0)
 			return ['create'];
 		return result;
 	},
@@ -555,23 +574,20 @@ Metaclass = {
 	listConstructors: function() {
 		var cl = this;
 		var result = ['create'];
-		var constructor;
-		do {
-			for (constructor in cl.__constructors)
-				if (result.indexOf(constructor) < 0)
-					result.push(constructor);
-			cl = cl.__superclass;
-		} while (cl != Object);
+		for (var constructor in cl.__constructors) 
+			result.push(constructor);
 		return result;
 	},
 	listMethods: function() {
 		var cl = this;
 		var result = [];
-		var method;
 		do {
-			for (method in cl.__methods)
+			var methods = cl.listOwnMethods();
+			for (var i = 0; i < methods.length; i++) {
+				var method = methods[i];
 				if (result.indexOf(method) < 0)
 					result.push(method);
+			}
 			cl = cl.__superclass;
 		} while (cl != Object);
 		return result;
