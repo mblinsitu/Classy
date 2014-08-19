@@ -28,7 +28,9 @@
     "url": "http://opensource.org/licenses/MIT"
   }],
   "devDependencies": {
-    "chai": ">=1.7.2"
+    "chai": ">=1.9.1",
+    "karma-mocha": ">0.1.7",
+    "karma-chrome-launcher": ">0.1.4"
   },
   "repository": {
     "type": "git",
