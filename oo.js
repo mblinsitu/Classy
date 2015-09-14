@@ -1,5 +1,5 @@
 // Classy - Yet another Javascript OO-framework (basic)
-// (c) 2011-2013, Michel Beaudouin-Lafon, mbl@lri.fr
+// (c) 2011-2015, Michel Beaudouin-Lafon, mbl@lri.fr
 // Open sourced under the MIT License
 (function(exports) {
 var Metaclass;
@@ -95,7 +95,7 @@ var objectMethods = {
 				if (!obj)
 					return this;
 				if (obj.__class) {	
-					var fields = obj.__class.listFields();
+					var fields = obj.__class.listAllFields();
 					for (i = 0; i < fields.length; i++) {
 						name = fields[i];
 						if (this.__class.hasField(name))
@@ -131,7 +131,7 @@ var objectMethods = {
 		var i, name;
 		switch (arguments.length) {
 			case 0:
-				fields = this.__class.listFields();
+				fields = this.__class.listAllFields();
 				obj = {};
 				for (i = 0; i < fields.length; i++) {
 					name = fields[i];
@@ -158,7 +158,7 @@ var objectMethods = {
 				if (typeof field == 'object') {
 					obj = {};
 					if (field.__class) {	
-						fields = field.__class.listFields();
+						fields = field.__class.listAllFields();
 						for (i = 0; i < fields.length; i++) {
 							name = fields[i];
 							if (this.__class.hasField(name))
@@ -224,7 +224,7 @@ Metaclass = {
 		return this.__name;
 	},
 	toString: function() {
-		return 'class '+ (this.__name || '');
+		return 'class '+ (this.__name || "");
 	},
 	inspect: function() {
 		return this.toString();
@@ -282,7 +282,7 @@ Metaclass = {
 			result.push(field);
 		return result;
 	},
-	listFields: function() {
+	listAllFields: function() {
 		var cl = this;
 		var result = [];
 		var field;
@@ -296,6 +296,32 @@ Metaclass = {
 			cl = cl.__superclass;
 		} while (cl != Object);
 		return result;
+	},
+	listFields: function(spec) {
+		if (!spec || spec === 'all')
+			return this.listAllFields();
+		if (spec === 'own')
+			return this.listOwnFields();
+		if (typeof spec === 'string')
+			spec = spec.split(' ');
+		var res = null;
+		if (spec[0] === 'all-')
+			res = this.listAllFields();
+		else if (spec[0] === 'own-')
+			res = this.listOwnFields();
+		if (res) {
+			for (var i = 1; i < spec.length; i++) {
+				var j = res.indexOf(spec[i]);
+				if (j <= 0)
+					res.splice(j, 1);
+			}
+			return res;			
+		}
+		res = [];
+		for (var i = 0; i < spec.length; i++)
+			if (this.hasField(spec[i]))
+				res.push(spec[i]);
+		return res;
 	},
 	constructor: function(name, fun) {
 		if (! fun && typeof(name) == 'function') {
@@ -372,7 +398,7 @@ Metaclass = {
 			result.push(constructor);
 		return result;
 	},
-	listMethods: function() {
+	listAllMethods: function() {
 		var cl = this;
 		var result = [];
 		do {
@@ -385,6 +411,32 @@ Metaclass = {
 			cl = cl.__superclass;
 		} while (cl != Object);
 		return result;
+	},
+	listMethods: function(spec) {
+		if (!spec || spec === 'all')
+			return this.listAllMethods();
+		if (spec === 'own')
+			return this.listOwnMethods();
+		if (typeof spec === 'string')
+			spec = spec.split(' ');
+		var res = null;
+		if (spec[0] === 'all-')
+			res = this.listAllMethods();
+		else if (spec[0] === 'own-')
+			res = this.listOwnMethods();
+		if (res) {
+			for (var i = 1; i < spec.length; i++) {
+				var j = res.indexOf(spec[i]);
+				if (j <= 0)
+					res.splice(j, 1);
+			}
+			return res;			
+		}
+		res = [];
+		for (var i = 0; i < spec.length; i++)
+			if (this.hasMethod(spec[i]))
+				res.push(spec[i]);
+		return res;
 	},
 	subclass: function() {
 		return newClass(this);

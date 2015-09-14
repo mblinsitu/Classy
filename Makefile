@@ -3,7 +3,7 @@ BASEMODULE=OO
 CLASSYMODULE=Classy
 
 # where is the markdown->html generator
-GMD=/Users/mbl/Dev/Tools/More\ Web\ dev\ tools/Markdown/markdown-styles-master/bin/
+GMD=/Users/mbl/Dev/Tools/Markdown/markdown-styles/markdown-styles-master/bin/
 STYLE=mbl-bootstrap
 MARKDOWN=$(GMD)/generate-md --output ./ --layout $(STYLE) --input 
 
@@ -19,13 +19,13 @@ all: $(ALL)
 
 classy.js: $(BASE) $(MIXIN)
 	echo "// Classy - Yet another Javascript OO-framework (complete)" > classy.js
-	echo "// (c) 2011-2013, Michel Beaudouin-Lafon, mbl@lri.fr" >> classy.js
+	echo "// (c) 2011-2015, Michel Beaudouin-Lafon, mbl@lri.fr" >> classy.js
 	echo "// Open sourced under the MIT License" >> classy.js
 	./jspp -DMIXIN -DMODULE=\"$(CLASSYMODULE)\" src/template.js >> classy.js
 
 oo.js: $(BASE)
 	echo "// Classy - Yet another Javascript OO-framework (basic)" > oo.js
-	echo "// (c) 2011-2013, Michel Beaudouin-Lafon, mbl@lri.fr" >> oo.js
+	echo "// (c) 2011-2015, Michel Beaudouin-Lafon, mbl@lri.fr" >> oo.js
 	echo "// Open sourced under the MIT License" >> oo.js
 	./jspp -DMODULE=\"$(BASEMODULE)\" src/template.js >> oo.js
 

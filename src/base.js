@@ -114,7 +114,7 @@ function noSuper() {}
 function constructorWithSuper(myClass, name, fun) {
 	var superclass = myClass.__superclass;
 	
-	// if there is no call to super, simply call the constructor function and the mixins' constructors
+	// if there is no call to super, simply call the constructor function and the mixins constructors
 	if (fun.toString().search(/\W_super\W/m) < 0) {
 #ifdef MIXIN
 		return function() {
@@ -188,7 +188,7 @@ var objectMethods = {
 	// Set one or more fields at once. 3 possible syntax:
 	//	obj.set('field1', value1, 'field2', value2, ...)
 	//	obj.set(['field1', 'field2', ...], [value1, value2, ...])
-	//	obj.set({ field1: value, fields2: value2, ...})  - works also with one of our objects (use it's declared fields)
+	//	obj.set({ field1: value, fields2: value2, ...})  - works also with one of our objects (use its declared fields)
 	// Fields that are not defined as such are ignored
 	// set always returns the this object
 	set: function(field, value /*varargs*/) {
@@ -203,7 +203,7 @@ var objectMethods = {
 				if (!obj)
 					return this;
 				if (obj.__class) {	// this is one of our objects - use its fields
-					var fields = obj.__class.listFields();
+					var fields = obj.__class.listAllFields();
 					for (i = 0; i < fields.length; i++) {
 						name = fields[i];
 						if (this.__class.hasField(name))
@@ -251,7 +251,7 @@ var objectMethods = {
 		switch (arguments.length) {
 			case 0:
 				//	obj.get()  - returns all the fields
-				fields = this.__class.listFields();
+				fields = this.__class.listAllFields();
 				obj = {};
 				for (i = 0; i < fields.length; i++) {
 					name = fields[i];
@@ -284,7 +284,7 @@ var objectMethods = {
 				if (typeof field == 'object') {
 					obj = {};
 					if (field.__class) {	// this is one of our objects
-						fields = field.__class.listFields();
+						fields = field.__class.listAllFields();
 						for (i = 0; i < fields.length; i++) {
 							name = fields[i];
 							if (this.__class.hasField(name))
@@ -332,7 +332,7 @@ function newClass(superclass) {
 	// the constructor for the metaclass object
 	function classProto() {}
 	
-	if (superclass === Object) { // it's a new base class
+	if (superclass === Object) { // it is a new base class
 		// the tail of the metaclass delegation chain is the Metaclass object itself.
 		classProto.prototype = Metaclass;
 		
@@ -343,23 +343,23 @@ function newClass(superclass) {
 		function methodTable() {}
 	    methodTable.prototype = objectMethods; 
 	    methods = new methodTable(); 
-	} else { // it's a new subclass
-		// chain the metaclass to the superclass's metaclass
+	} else { // it is a new subclass
+		// chain the metaclass to the superclass´s metaclass
 		classProto.prototype = superclass.__metaclass;
 		
-		// create a constructor table that is chained to the superclass's constructor table
+		// create a constructor table that is chained to the superclass´s constructor table
 		/*jshint supernew: true*/
 		var ctorTable = new Function(); // function ctorTable() {}
 		ctorTable.prototype = superclass.__constructors;
 		constructors = new ctorTable();
 		
-		// similarly, create a method table thast is chained to the superclass's method table
+		// similarly, create a method table thast is chained to the superclass´s method table
 		var methodTable = new Function(); // function methodTable() {}
 	    methodTable.prototype = superclass.__methods; 
 	    methods = new methodTable(); 
 	}
 	
-	// create the metaclass object. It's superclass is the metaclass of the superclass (!)
+	// create the metaclass object. Its superclass is the metaclass of the superclass (!)
 	metaclass = new classProto();
 //	metaclass.superclass = classProto.prototype;
 	

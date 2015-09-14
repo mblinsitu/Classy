@@ -557,7 +557,8 @@ A.toString()        // return &#39;class &lt;className&gt;&#39;</pre>
 <pre class="prettyprint">A.hasOwnField(&#39;x&#39;)    // true if x is a field of A
 A.listOwnFields()    // return the list of fields of A
 A.hasField(&#39;x&#39;)        // true if x is a field of A or one of its parent classes
-A.listFields()        // return the list of fields of A and its parent classes</pre>
+A.listAllFields()    // return the list of fields of A and its parent classes
+A.listFields(spec)    // return the list of fields of A and its parent classes matching the specification</pre>
 <p>Information about constructors defined in the class itself:</p>
 <pre class="prettyprint">A.hasOwnConstructor(name)    // true if &#39;name&#39; is a constructor of class A
 A.getOwnConstructor(name)    // return the constructor &#39;name&#39; if defined in class A
@@ -573,7 +574,8 @@ A.listOwnMethods()            // return the list of methods defined in class A</
 <p>Information about methods defined in the class itself or one of its parent classes:</p>
 <pre class="prettyprint">A.hasMethod(name)            // true if &#39;name&#39; is a method available to class A
 A.getMethod(name)            // return the method &#39;name&#39; if it is available to class A
-A.listMethods()                // return the list of methods available to class A</pre>
+A.listAllMethods()            // return the list of methods available to class A
+A.listMethods(spec)            // return the list of fields of A and its parent classes matching the specification</pre>
 
   </div>
 

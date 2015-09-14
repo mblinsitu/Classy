@@ -215,7 +215,7 @@ function wrapFields(fields, obj, owner) {
 		if (d.get || d.set)
 			wrapField(obj, field, d.get, d.set, owner);
 		else {
-			// it's not defined as an active field but as a special case
+			// it is not defined as an active field but as a special case
 			// we consider it as such if it is defined with a literal object 
 			// with properties set and/or get
 			// *** this works ONLY for mixin.fieldWrappers, NOT for aClass.wrapFields(...)

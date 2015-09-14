@@ -54,7 +54,7 @@ Metaclass = {
 
 	// short text description: 'class X' if it has a name, 'class #nn' otherwise
 	toString: function() {
-		return 'class '+ (this.__name || '');
+		return 'class '+ (this.__name || "");
 	},
 
 	// same as toString for util.inspect
@@ -154,7 +154,7 @@ Metaclass = {
 	},
 
 	// return array with names of fields in this class and any superclass
-	listFields: function() {
+	listAllFields: function() {
 		var cl = this;
 		var result = [];
 		var field;
@@ -168,6 +168,46 @@ Metaclass = {
 			cl = cl.__superclass;
 		} while (cl != Object);
 		return result;
+	},
+
+	// return a list of field names according to the specification
+	//	'own': return list of all fields
+	//	'all': return list of own fields
+	//	other string: whitespace-separated list of field names
+	//	['f1', 'f2', ...]: list of field names
+	//	if the string or the array starts with 'own-' or 'all-': return own/all fields except those in the rest of the list
+	listFields: function(spec) {
+		// list of own/all fields
+		if (!spec || spec === 'all')
+			return this.listAllFields();
+		if (spec === 'own')
+			return this.listOwnFields();
+
+		// if a string, turn into array
+		if (typeof spec === 'string')
+			spec = spec.split(' ');
+
+		// array starting with 'own-' or 'all-'
+		var res = null;
+		if (spec[0] === 'all-')
+			res = this.listAllFields();
+		else if (spec[0] === 'own-')
+			res = this.listOwnFields();
+		if (res) {
+			for (var i = 1; i < spec.length; i++) {
+				var j = res.indexOf(spec[i]);
+				if (j <= 0)
+					res.splice(j, 1);
+			}
+			return res;			
+		}
+
+		// list of fields
+		res = [];
+		for (var i = 0; i < spec.length; i++)
+			if (this.hasField(spec[i]))
+				res.push(spec[i]);
+		return res;
 	},
 
 	// ======== CONSTRUCTORS and METHODS ========
@@ -281,7 +321,7 @@ Metaclass = {
 		return result;
 	},
 
-	listMethods: function() {
+	listAllMethods: function() {
 		var cl = this;
 		var result = [];
 /*	This does not work because 'in' returns all the default object methods, which we don't want to list
@@ -301,6 +341,45 @@ Metaclass = {
 		return result;
 	},
 
+	// return a list of method names according to the specification
+	//	'own': return list of own methods
+	//	'all': return list of all methods
+	//	other string: whitespace-separated list of methods names
+	//	['f1', 'f2', ...]: list of methods names
+	//	if the string or the array starts with 'own-' or 'all-': return own/all methods except those in the rest of the list
+	listMethods: function(spec) {
+		// list of own/all methods
+		if (!spec || spec === 'all')
+			return this.listAllMethods();
+		if (spec === 'own')
+			return this.listOwnMethods();
+
+		// if a string, turn into array
+		if (typeof spec === 'string')
+			spec = spec.split(' ');
+
+		// array starting with 'own-' or 'all-'
+		var res = null;
+		if (spec[0] === 'all-')
+			res = this.listAllMethods();
+		else if (spec[0] === 'own-')
+			res = this.listOwnMethods();
+		if (res) {
+			for (var i = 1; i < spec.length; i++) {
+				var j = res.indexOf(spec[i]);
+				if (j <= 0)
+					res.splice(j, 1);
+			}
+			return res;			
+		}
+
+		// list of methods
+		res = [];
+		for (var i = 0; i < spec.length; i++)
+			if (this.hasMethod(spec[i]))
+				res.push(spec[i]);
+		return res;
+	},
 
 #ifdef MIXIN
 #include "mixin-metaclass.js"

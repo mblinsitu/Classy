@@ -684,7 +684,8 @@ Information about fields:
 	A.hasOwnField('x')	// true if x is a field of A
 	A.listOwnFields()	// return the list of fields of A
 	A.hasField('x')		// true if x is a field of A or one of its parent classes
-	A.listFields()		// return the list of fields of A and its parent classes
+	A.listAllFields()	// return the list of fields of A and its parent classes
+	A.listFields(spec)	// return the list of fields of A and its parent classes matching the specification
 
 Information about constructors defined in the class itself:
 
@@ -708,5 +709,6 @@ Information about methods defined in the class itself or one of its parent class
 
 	A.hasMethod(name)			// true if 'name' is a method available to class A
 	A.getMethod(name)			// return the method 'name' if it is available to class A
-	A.listMethods()				// return the list of methods available to class A
+	A.listAllMethods()			// return the list of methods available to class A
+	A.listMethods(spec)			// return the list of fields of A and its parent classes matching the specification
 
